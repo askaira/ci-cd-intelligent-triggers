@@ -11,9 +11,67 @@ on:
     branches:
       - main
 
+
+
 jobs:
-  build:
+  filter:
     runs-on: ubuntu-latest
+    outputs:
+      unit: ${{ steps.filter.outputs.unit }}
+      integration: ${{ steps.filter.outputs.integration }}
     steps:
       - uses: actions/checkout@v3
-      - run: echo "🚀 Build Triggered!"
+        with:
+          fetch-depth: 0
+      - id: filter
+        uses: dorny/paths-filter@v2
+        with:
+          filters: |
+            unit:
+              - 'src/**'
+            integration:
+              - 'tests/integration/**'
+
+  test-unit:
+    needs: filter
+    if: needs.filter.outputs.unit == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [14, 16, 18]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install
+        run: npm ci
+      - name: Run unit tests
+        run: npm run test:unit
+      - name: Upload unit test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: unit-test-report
+          path: test-results/unit || ./test-results/unit
+
+  test-integration:
+    needs: filter
+    if: needs.filter.outputs.integration == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node: [14, 16, 18]
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Install
+        run: npm ci
+      - name: Run integration tests
+        run: npm run test:integration
+      - name: Upload integration test report
+        uses: actions/upload-artifact@v3
+        with:
+          name: integration-test-report
+          path: test-results/integration || ./test-results/integration
