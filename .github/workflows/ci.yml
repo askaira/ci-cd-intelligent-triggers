@@ -10,3 +10,11 @@ on:
       - main
   tags:
     - 'v*'
+
+jobs:
+    build:
+        if: contains(github.event.head_commit.message, '[build]')
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v3
+            - run: echo "Build triggered due to commit message [build]"
