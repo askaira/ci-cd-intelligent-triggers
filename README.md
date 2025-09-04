@@ -1,3 +1,3 @@
 # ci-cd-intelligent-triggers
 
-Minor documentation update.
+Intelligent Test Triggers
